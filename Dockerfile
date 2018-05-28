@@ -14,6 +14,7 @@ RUN make
 RUN cp -p _output/main /kubernetes-github-authn
 
 FROM alpine:3.7
+RUN apk --no-cache --update add ca-certificates
 MAINTAINER JuanJo Ciarlante <juanjosec@gmail.com>
 
 COPY --from=build kubernetes-github-authn /boot

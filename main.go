@@ -54,18 +54,11 @@ func main() {
 
 		// Gather teams
 		opt := &github.ListOptions{PerPage: 1000}
-		teams_results, _, err := client.Organizations.ListUserTeams(ctx, opt)
+		teams_results := []*github.Team{}
+		teams_results, _, err = client.Organizations.ListUserTeams(ctx, opt)
+		// Soft fail on listing user's teams (e.g. user with no team at all)
 		if err != nil {
-			log.Println("[Error]", err.Error())
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"apiVersion": "authentication.k8s.io/v1beta1",
-				"kind":       "TokenReview",
-				"status": authentication.TokenReviewStatus{
-					Authenticated: false,
-				},
-			})
-			return
+			log.Println("[Warning]", err.Error())
 		}
 		org := os.Getenv("GITHUB_ORG")
 		var groups []string
@@ -78,7 +71,7 @@ func main() {
 			groups = append(groups, *team.Name)
 		}
 
-		log.Printf("[Success] login as %s", *user.Login)
+		log.Printf("[Success] login as user=%s, groups=%v", *user.Login, groups)
 		w.WriteHeader(http.StatusOK)
 		trs := authentication.TokenReviewStatus{
 			Authenticated: true,
