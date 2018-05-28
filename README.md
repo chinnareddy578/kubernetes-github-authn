@@ -22,7 +22,7 @@ authenticator on your Kubernetes master using host networking so that the
 apiserver can access the authenticator through the loopback interface.
 
 ```
-kubectl create -f https://raw.githubusercontent.com/oursky/kubernetes-github-authn/master/manifests/github-authn.yaml
+kubectl create -f https://raw.githubusercontent.com/jjo/kubernetes-github-authn/master/manifests/github-authn.yaml
 ```
 
 Confirm that the authenticator is running:
