@@ -1,14 +1,12 @@
 language: go
 
-go: 1.7.5
+go: 1.9.4
 
-go_import_path: github.com/oursky/kubernetes-github-authn
+go_import_path: github.com/jjo/kubernetes-github-authn
 
 before_install:
-  - go get github.com/Masterminds/glide
 
 install:
-  - glide install
   - go install
 
 script:
