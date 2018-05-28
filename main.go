@@ -49,42 +49,40 @@ func main() {
 
 		opt := &github.ListOptions{PerPage: 1000}
 		// If $GITHUB_ORG_MEMBER is set, user must be member of the $GITHUB_ORG organization
-		org := os.Getenv("GITHUB_ORG")
-		member_check := os.Getenv("GITHUB_ORG_MEMBER")
-		if org != "" && member_check != "" {
-			is_member := false
-			members, _, err := client.Organizations.ListMembers(ctx, org, nil)
-			if err == nil {
-				for _, member := range members {
-					if member.Login != nil && *member.Login == *user.Login {
-						is_member = true
-					}
-				}
-			} else {
-				unauthorized(w, "[Error] getting organization=%s members: %s", org, err.Error())
-				return
-			}
-			if !is_member {
-				unauthorized(w, "[Error] user=%q not in organization=%s", *user.Login, org)
-				return
-			}
-		}
-
-		// Gather teams
-		teams_results := []*github.Team{}
-		teams_results, _, err = client.Organizations.ListUserTeams(ctx, opt)
-		// Soft fail on listing user's teams (e.g. user with no team at all)
-		if err != nil {
-			log.Printf("[Warning] failed to list teams for user=%s: %s", *user.Login, err.Error())
-		}
 		var groups []string
-		for _, team := range teams_results {
-			if org != "" {
+		org := os.Getenv("GITHUB_ORG")
+		if org != "" {
+			if os.Getenv("GITHUB_ORG_MEMBER") != "" {
+				is_member := false
+				members, _, err := client.Organizations.ListMembers(ctx, org, nil)
+				if err == nil {
+					for _, member := range members {
+						if strings.EqualFold(*member.Login, *user.Login) {
+							is_member = true
+						}
+					}
+				} else {
+					unauthorized(w, "[Error] getting organization=%s members: %s", org, err.Error())
+					return
+				}
+				if !is_member {
+					unauthorized(w, "[Error] user=%q not in organization=%s", *user.Login, org)
+					return
+				}
+			}
+			// Gather teams
+			teams_results := []*github.Team{}
+			teams_results, _, err = client.Organizations.ListUserTeams(ctx, opt)
+			// Soft fail on listing user's teams (e.g. user with no team at all)
+			if err != nil {
+				log.Printf("[Warning] failed to list teams for user=%s: %s", *user.Login, err.Error())
+			}
+			for _, team := range teams_results {
 				if !(strings.EqualFold(org, *team.Organization.Login)) {
 					continue
 				}
+				groups = append(groups, *team.Name)
 			}
-			groups = append(groups, *team.Name)
 		}
 
 		log.Printf("[Success] login as user=%s, groups=%v, org=%s", *user.Login, groups, org)
