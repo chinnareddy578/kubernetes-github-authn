@@ -99,6 +99,9 @@ and we would set the manifest to read:
 ...
 ```
 
+If you want to **force** the user to be an organization member, set
+the `GITHUB_ORG_MEMBER` environment variable to any string (e.g.  "true").
+
 Read the [Kubernetes
 documentation](https://kubernetes.io/docs/admin/authorization/rbac/) to learn
 more about how to configure your apiserver to use RBAC.
