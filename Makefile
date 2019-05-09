@@ -7,7 +7,7 @@ ifeq (1,${WITH_DOCKER})
 DOCKER_RUN := docker run --rm -i \
 	-v `pwd`:$(GO_SRC_PATH) \
 	-w $(GO_SRC_PATH)
-GO_RUN := $(DOCKER_RUN) golang:1.9.4-alpine
+GO_RUN := $(DOCKER_RUN) golang:1.12.5-alpine
 endif
 
 .PHONY: build
