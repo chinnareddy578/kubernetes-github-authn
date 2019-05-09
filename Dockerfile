@@ -1,4 +1,4 @@
-FROM golang:1.9.4-alpine as build
+FROM golang:1.12.5-alpine as build
 
 ARG SRC_REPO=github.com/jjo/kubernetes-github-authn
 ARG SRC_TAG=master

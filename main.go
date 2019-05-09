@@ -54,7 +54,8 @@ func main() {
 		if org != "" {
 			if os.Getenv("GITHUB_ORG_MEMBER") != "" {
 				is_member := false
-				members, _, err := client.Organizations.ListMembers(ctx, org, nil)
+				// Also set large pagination on ListMembers() call
+				members, _, err := client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{ListOptions: *opt})
 				if err == nil {
 					for _, member := range members {
 						if strings.EqualFold(*member.Login, *user.Login) {
