@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/jjo/kubernetes-github-authn.svg?branch=master)](https://travis-ci.com/jjo/kubernetes-github-authn)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jjo/kubernetes-github-authn)](https://goreportcard.com/badge/github.com/jjo/kubernetes-github-authn)
 # Kubernetes Webhook Token Authenticator for GitHub
 
 This project implements a Kubernetes [Webhook Token
