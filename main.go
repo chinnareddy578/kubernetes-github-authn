@@ -31,30 +31,30 @@ func getGroups(ctx context.Context, client *github.Client, user *github.User, or
 	var groups []string
 	if org != "" {
 		if orgMember {
-			is_member := false
+			isMember := false
 			// Also set large pagination on ListMembers() call
 			members, _, err := client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{ListOptions: *opt})
 			if err == nil {
 				for _, member := range members {
 					if strings.EqualFold(*member.Login, *user.Login) {
-						is_member = true
+						isMember = true
 					}
 				}
 			} else {
 				return nil, fmt.Errorf("[Error] getting organization=%s members: %s", org, err.Error())
 			}
-			if !is_member {
+			if !isMember {
 				return nil, fmt.Errorf("[Error] user=%q not in organization=%s", *user.Login, org)
 			}
 		}
 		// Gather teams
-		teams_results := []*github.Team{}
-		teams_results, _, err := client.Teams.ListUserTeams(ctx, opt)
+		teamsResults := []*github.Team{}
+		teamsResults, _, err := client.Teams.ListUserTeams(ctx, opt)
 		// Soft fail on listing user's teams (e.g. user with no team at all)
 		if err != nil {
 			log.Printf("[Warning] failed to list teams for user=%s: %s", *user.Login, err.Error())
 		}
-		for _, team := range teams_results {
+		for _, team := range teamsResults {
 			if !(strings.EqualFold(org, *team.Organization.Login)) {
 				continue
 			}
