@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
-	authentication "k8s.io/client-go/pkg/apis/authentication/v1beta1"
+	authentication "k8s.io/api/authentication/v1beta1"
 )
 
 func unauthorized(w http.ResponseWriter, format string, args ...interface{}) {
@@ -24,7 +25,47 @@ func unauthorized(w http.ResponseWriter, format string, args ...interface{}) {
 		},
 	})
 }
+func getGroups(ctx context.Context, client *github.Client, user *github.User, org string, orgMember bool) ([]string, error) {
+	opt := &github.ListOptions{PerPage: 1000}
+	// If orgMember is set, user must be member of the org
+	var groups []string
+	if org != "" {
+		if orgMember {
+			isMember := false
+			// Also set large pagination on ListMembers() call
+			members, _, err := client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{ListOptions: *opt})
+			if err == nil {
+				for _, member := range members {
+					if strings.EqualFold(*member.Login, *user.Login) {
+						isMember = true
+					}
+				}
+			} else {
+				return nil, fmt.Errorf("[Error] getting organization=%s members: %s", org, err.Error())
+			}
+			if !isMember {
+				return nil, fmt.Errorf("[Error] user=%q not in organization=%s", *user.Login, org)
+			}
+		}
+		// Gather teams
+		teamsResults := []*github.Team{}
+		teamsResults, _, err := client.Teams.ListUserTeams(ctx, opt)
+		// Soft fail on listing user's teams (e.g. user with no team at all)
+		if err != nil {
+			log.Printf("[Warning] failed to list teams for user=%s: %s", *user.Login, err.Error())
+		}
+		for _, team := range teamsResults {
+			if !(strings.EqualFold(org, *team.Organization.Login)) {
+				continue
+			}
+			groups = append(groups, *team.Name)
+		}
+	}
+	return groups, nil
+}
 func main() {
+	org := os.Getenv("GITHUB_ORG")
+	orgMember := os.Getenv("GITHUB_ORG_MEMBER")
 	http.HandleFunc("/authenticate", func(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		var tr authentication.TokenReview
@@ -47,45 +88,12 @@ func main() {
 			return
 		}
 
-		opt := &github.ListOptions{PerPage: 1000}
-		// If $GITHUB_ORG_MEMBER is set, user must be member of the $GITHUB_ORG organization
-		var groups []string
-		org := os.Getenv("GITHUB_ORG")
-		if org != "" {
-			if os.Getenv("GITHUB_ORG_MEMBER") != "" {
-				is_member := false
-				// Also set large pagination on ListMembers() call
-				members, _, err := client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{ListOptions: *opt})
-				if err == nil {
-					for _, member := range members {
-						if strings.EqualFold(*member.Login, *user.Login) {
-							is_member = true
-						}
-					}
-				} else {
-					unauthorized(w, "[Error] getting organization=%s members: %s", org, err.Error())
-					return
-				}
-				if !is_member {
-					unauthorized(w, "[Error] user=%q not in organization=%s", *user.Login, org)
-					return
-				}
-			}
-			// Gather teams
-			teams_results := []*github.Team{}
-			teams_results, _, err = client.Organizations.ListUserTeams(ctx, opt)
-			// Soft fail on listing user's teams (e.g. user with no team at all)
-			if err != nil {
-				log.Printf("[Warning] failed to list teams for user=%s: %s", *user.Login, err.Error())
-			}
-			for _, team := range teams_results {
-				if !(strings.EqualFold(org, *team.Organization.Login)) {
-					continue
-				}
-				groups = append(groups, *team.Name)
-			}
+		groups, err := getGroups(ctx, client, user, org, orgMember != "")
+		if err != nil {
+			unauthorized(w, err.Error())
+			return
 		}
-
+		// Set the TokenReviewStatus
 		log.Printf("[Success] login as user=%s, groups=%v, org=%s", *user.Login, groups, org)
 		w.WriteHeader(http.StatusOK)
 		trs := authentication.TokenReviewStatus{

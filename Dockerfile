@@ -1,9 +1,10 @@
-FROM golang:1.12.5-alpine as build
+FROM golang:1.13-alpine as build
 
 ARG SRC_REPO=github.com/jjo/kubernetes-github-authn
 ARG SRC_TAG=master
 ARG ARCH=amd64
-ARG BINARY=main
+ARG BINARY_BUILD=main
+ARG BINARY=kubernetes-github-authn
 
 RUN apk --no-cache --update add ca-certificates make git
 
@@ -11,14 +12,14 @@ RUN apk --no-cache --update add ca-certificates make git
 COPY . /go/src/${SRC_REPO}
 WORKDIR ${GOPATH}/src/${SRC_REPO}
 RUN make
-RUN cp -p _output/main /kubernetes-github-authn
+RUN cp -p _output/${BINARY_BUILD} /${BINARY}
 
 FROM alpine:3.7
 RUN apk --no-cache --update add ca-certificates
 MAINTAINER JuanJo Ciarlante <juanjosec@gmail.com>
 
-COPY --from=build kubernetes-github-authn /boot
+COPY --from=build ${BINARY} /${BINARY}
 
 USER 1001
 EXPOSE 3000
-CMD ["/boot"]
+CMD ["/kubernetes-github-authn"]

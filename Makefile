@@ -1,13 +1,15 @@
 REPO := jjo/kubernetes-github-authn
-IMAGE_NAME := $(REPO)
+
+# My dockerhub user is 'xjjo'
+IMAGE_NAME := x$(REPO)
 GO_SRC_PATH := /go/src/github.com/$(REPO)
-PORT := 8080
+PORT := 3000
 
 ifeq (1,${WITH_DOCKER})
 DOCKER_RUN := docker run --rm -i \
 	-v `pwd`:$(GO_SRC_PATH) \
 	-w $(GO_SRC_PATH)
-GO_RUN := $(DOCKER_RUN) golang:1.12.5-alpine
+GO_RUN := $(DOCKER_RUN) golang:1.13-alpine
 endif
 
 .PHONY: build
@@ -24,7 +26,7 @@ clean:
 
 .PHONY: docker-build
 docker-build:
-	WITH_DOCKER=1 make build
+	#WITH_DOCKER=1 make build
 	docker build -t $(IMAGE_NAME) .
 
 .PHONY: docker-run
