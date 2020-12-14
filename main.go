@@ -11,13 +11,13 @@ import (
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
-	authentication "k8s.io/api/authentication/v1beta1"
+	authentication "k8s.io/api/authentication/v1"
 )
 
 func unauthorized(w http.ResponseWriter, format string, args ...interface{}) {
 	log.Printf(format, args...)
 	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"apiVersion": "authentication.k8s.io/v1beta1",
 		"kind":       "TokenReview",
 		"status": authentication.TokenReviewStatus{
@@ -104,8 +104,8 @@ func main() {
 				Groups:   groups,
 			},
 		}
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"apiVersion": "authentication.k8s.io/v1beta1",
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"apiVersion": "authentication.k8s.io/v1",
 			"kind":       "TokenReview",
 			"status":     trs,
 		})

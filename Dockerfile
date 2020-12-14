@@ -1,6 +1,6 @@
 FROM golang:1.13-alpine as build
 
-ARG SRC_REPO=github.com/jjo/kubernetes-github-authn
+ARG SRC_REPO=github.com/chinnareddy578/kubernetes-github-authn
 ARG SRC_TAG=master
 ARG ARCH=amd64
 
@@ -14,7 +14,6 @@ RUN cp -p _output/main /main
 
 FROM alpine:3.7
 RUN apk --no-cache --update add ca-certificates
-MAINTAINER JuanJo Ciarlante <juanjosec@gmail.com>
 
 COPY --from=build /main /kubernetes-github-authn
 

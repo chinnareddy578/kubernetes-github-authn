@@ -1,7 +1,7 @@
-REPO := jjo/kubernetes-github-authn
+REPO := chinnareddy578/kubernetes-github-authn
 
 # My dockerhub user is 'xjjo'
-IMAGE_NAME := x$(REPO)
+IMAGE_NAME := $(REPO)
 GO_SRC_PATH := /go/src/github.com/$(REPO)
 PORT := 3000
 
@@ -28,6 +28,10 @@ clean:
 docker-build:
 	#WITH_DOCKER=1 make build
 	docker build -t $(IMAGE_NAME) .
+
+.PHONY: docker-build-push
+docker-build-push:docker-build
+	docker push $(IMAGE_NAME)
 
 .PHONY: docker-run
 docker-run:
