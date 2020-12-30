@@ -1,4 +1,4 @@
-REPO := chinnareddy578/kubernetes-github-authn
+REPO := chinnareddy578/kubernetes-github-authn:1.0
 
 # My dockerhub user is 'xjjo'
 IMAGE_NAME := $(REPO)

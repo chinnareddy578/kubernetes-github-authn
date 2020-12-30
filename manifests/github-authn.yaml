@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
@@ -17,15 +17,16 @@ spec:
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
       containers:
-      - image: xjjo/kubernetes-github-authn
+      - image: chinnareddy578/kubernetes-github-authn:1.0
+        imagePullPolicy: Always
         name: kubernetes-github-authn
         ports:
         - containerPort: 3000
           hostPort: 3000
           protocol: TCP
-        env:
-#        - name: GITHUB_ORG
-#          value: <github org name>
+#        env:
+##        - name: GITHUB_ORG
+##          value: <github org name>
       hostNetwork: true
       tolerations:
       - key: node-role.kubernetes.io/master
